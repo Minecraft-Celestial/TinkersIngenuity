@@ -3,6 +3,7 @@ package com.xiaoyue.tinkers_ingenuity;
 import com.mojang.logging.LogUtils;
 import com.tterrag.registrate.providers.ProviderType;
 import com.tterrag.registrate.util.entry.RegistryEntry;
+import com.xiaoyue.celestial_invoker.content.GeneratorTypes;
 import com.xiaoyue.celestial_invoker.simple.SimpleInvoker;
 import com.xiaoyue.tinkers_ingenuity.content.generic.MeleeCacheCapability;
 import com.xiaoyue.tinkers_ingenuity.content.generic.SerialLoader;
@@ -45,14 +46,14 @@ public class TinkersIngenuity
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final TIRegistrate REGISTRATE = new TIRegistrate(MODID);
 
-    public static final RegistryEntry<CreativeModeTab> ITEMS = REGISTRATE.buildModCreativeTab("items", "Tinkers Ingenuity Items",
+    public static final RegistryEntry<CreativeModeTab> ITEMS = REGISTRATE.buildCreativeTab("items",
             e -> e.icon(TIItems.BLACK_GOLD.ingot()::asStack));
 
-    public static final RegistryEntry<CreativeModeTab> FLUIDS = REGISTRATE.buildModCreativeTab("fluids", "Tinkers Ingenuity Fluids",
+    public static final RegistryEntry<CreativeModeTab> FLUIDS = REGISTRATE.buildCreativeTab("fluids",
             e -> e.icon(Objects.requireNonNull(TIFluids.MOLTEN_BLACK_FLASH_ALLOY.getBucket())::getDefaultInstance)
                     .displayItems((p, o) -> o.acceptAll(TIFluids.allBucket())));
 
-    public static final RegistryEntry<CreativeModeTab> TOOLS = REGISTRATE.buildModCreativeTab("tools", "Tinkers Ingenuity Tools",
+    public static final RegistryEntry<CreativeModeTab> TOOLS = REGISTRATE.buildCreativeTab("tools",
             e -> e.icon(TIItems.TINKERS_MEDAL.get()::getRenderTool).displayItems(TIItems::addItemsToTab));
     
     public TinkersIngenuity() {
@@ -62,13 +63,13 @@ public class TinkersIngenuity
         TIHooks.register();
         TIToolStats.register();
         TIDamageTypes.register();
-        TILootModifiers.register();
         MeleeCacheCapability.register();
         AttackEventHandler.register(2222, new TIAttackListener());
         REGISTRATE.addDataGenerator(ProviderType.LANG, TILang::addLang);
         REGISTRATE.addDataGenerator(ProviderType.ITEM_TAGS, TITagGen::addItemTagGen);
         REGISTRATE.addDataGenerator(ProviderType.FLUID_TAGS, TITagGen::addFluidTagGen);
         REGISTRATE.addDataGenerator(ProviderType.RECIPE, TIRecipeGen::acceptRecipe);
+        REGISTRATE.addDataGenerator(GeneratorTypes.RECORD_DATA, TISlotGen::onRecordGen);
     }
 
     @SubscribeEvent
@@ -96,7 +97,6 @@ public class TinkersIngenuity
         TIMaterialSprGen matSpr = new TIMaterialSprGen();
         TITinkerPartSpriteGen partSpr = new TITinkerPartSpriteGen();
         gen.addProvider(server, matDef);
-        gen.addProvider(server, new TISlotGen(gen));
         gen.addProvider(server, new TIStationLayoutGen(output));
         gen.addProvider(server, new TIToolDefinitionGen(output));
         gen.addProvider(server, new TIMaterialStatGen(output, matDef));

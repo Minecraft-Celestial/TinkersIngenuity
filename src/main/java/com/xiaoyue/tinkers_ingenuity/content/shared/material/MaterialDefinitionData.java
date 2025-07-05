@@ -1,8 +1,8 @@
 package com.xiaoyue.tinkers_ingenuity.content.shared.material;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.crafting.conditions.ICondition;
-import net.minecraftforge.common.crafting.conditions.OrCondition;
+import net.minecraftforge.common.crafting.conditions.*;
+import slimeknights.tconstruct.common.json.ConfigEnabledCondition;
 import slimeknights.tconstruct.library.materials.definition.Material;
 
 import javax.annotation.Nullable;
@@ -45,9 +45,17 @@ public record MaterialDefinitionData(int tier, int order, boolean craftable, boo
             return this;
         }
 
-        public Builder orCondition(ICondition... conditions) {
-            this.condition = new OrCondition(conditions);
+        public Builder orCondition(ICondition condition) {
+            this.condition = new OrCondition(ConfigEnabledCondition.FORCE_INTEGRATION_MATERIALS, condition);
             return this;
+        }
+
+        public Builder tagCondition(ResourceLocation condition) {
+            return orCondition(new NotCondition(new TagEmptyCondition(condition)));
+        }
+
+        public Builder modCondition(String condition) {
+            return orCondition(new ModLoadedCondition(condition));
         }
 
         public MaterialDefinitionData build() {

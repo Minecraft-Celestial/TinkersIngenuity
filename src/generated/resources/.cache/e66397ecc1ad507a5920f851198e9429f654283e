@@ -1,8 +1,8 @@
-// 1.20.1	2025-06-24T13:18:12.593256	Tinkers Ingenuity modifier providers
+// 1.20.1	2025-06-29T14:29:43.1921803	Tinkers Ingenuity modifier providers
 5bcd7aad30ed37c3e9c9b194f448b91568853215 data/tinkers_ingenuity/tinkering/modifiers/aftershock.json
 bd33c4893af4940860e2ddb71f38404be8cb9a0e data/tinkers_ingenuity/tinkering/modifiers/be_impolite.json
 358afc506ee952dc6e3c09cf51efafff7b3b55a4 data/tinkers_ingenuity/tinkering/modifiers/blot_out.json
-38e2f06a54597851c1d1e7ab9bbe0752d5177ff0 data/tinkers_ingenuity/tinkering/modifiers/chivalry.json
+648800cc660ee5b548ffddc29732fe514f502252 data/tinkers_ingenuity/tinkering/modifiers/chivalry.json
 b0e4486bfd8590f50cb69648f952d006e565ab09 data/tinkers_ingenuity/tinkering/modifiers/cold_blooded.json
 69a86ea6753120515069ce631d95eec4f345c143 data/tinkers_ingenuity/tinkering/modifiers/colorful_slime.json
 5c28d6d118cd9e77bbf85b5a468a5f528a9348e8 data/tinkers_ingenuity/tinkering/modifiers/cooperation.json

@@ -52,7 +52,7 @@ import java.util.function.BiConsumer;
 
 public class ModifiableCurio extends ModifiableItem implements ICurioItem {
     public ModifiableCurio(ToolDefinition toolDefinition) {
-        super((new Item.Properties()).stacksTo(1), toolDefinition);
+        super((new Properties()).stacksTo(1), toolDefinition);
     }
 
     public static List<SlotResult> findAll(LivingEntity entity) {
@@ -127,7 +127,7 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
     public void onEquip(SlotContext context, ItemStack prevStack, ItemStack stack) {
         CurioStackView tool = CurioStackView.of(context, stack);
         for (ModifierEntry entry : tool.getModifiers()) {
-            entry.getHook(TIHooks.TINKERS_CURIO).onChangeCurio(tool, entry.getLevel(), prevStack, ModifiableCurio.ChangeType.EQUIP);
+            entry.getHook(TIHooks.TINKERS_CURIO).onChangeCurio(tool, entry.getLevel(), prevStack, ChangeType.EQUIP);
         }
     }
 
@@ -135,7 +135,7 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
     public void onUnequip(SlotContext context, ItemStack newStack, ItemStack stack) {
         CurioStackView tool = CurioStackView.of(context, stack);
         for (ModifierEntry entry : tool.getModifiers()) {
-            entry.getHook(TIHooks.TINKERS_CURIO).onChangeCurio(tool, entry.getLevel(), newStack, ModifiableCurio.ChangeType.UNEQUIP);
+            entry.getHook(TIHooks.TINKERS_CURIO).onChangeCurio(tool, entry.getLevel(), newStack, ChangeType.UNEQUIP);
         }
     }
 
@@ -145,7 +145,7 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
         Iterator<ModifierEntry> iterator = tool.getModifiers().iterator();
         if (iterator.hasNext()) {
             ModifierEntry entry = iterator.next();
-            return entry.getHook(TIHooks.TINKERS_CURIO).canChangeCurio(tool, entry.getLevel(), ModifiableCurio.ChangeType.EQUIP);
+            return entry.getHook(TIHooks.TINKERS_CURIO).canChangeCurio(tool, entry.getLevel(), ChangeType.EQUIP);
         } else {
             return true;
         }
@@ -157,7 +157,7 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
         Iterator<ModifierEntry> iterator = tool.getModifiers().iterator();
         if (iterator.hasNext()) {
             ModifierEntry entry = iterator.next();
-            return entry.getHook(TIHooks.TINKERS_CURIO).canChangeCurio(tool, entry.getLevel(), ModifiableCurio.ChangeType.UNEQUIP);
+            return entry.getHook(TIHooks.TINKERS_CURIO).canChangeCurio(tool, entry.getLevel(), ChangeType.UNEQUIP);
         } else {
             return true;
         }

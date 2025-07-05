@@ -45,9 +45,9 @@ public record Chivalry(LevelingFormula bonus, int maxMultiplier)
     @Override
     public float getMeleeDamage(IToolStackView tool, ModifierEntry modifier, ToolAttackContext context, float baseDamage, float damage) {
         if (context.getAttacker() instanceof Player player) {
-            if (context.isCritical()) {
-                player.setAbsorptionAmount(0.0F);
-                return this.bonus.apply(damage, modifier);
+            if (context.isCritical() && context.isFullyCharged()) {
+                damage = this.bonus.apply(damage, modifier, player.getAbsorptionAmount());
+                player.setAbsorptionAmount(0.0f);
             }
         }
         return damage;
@@ -56,7 +56,7 @@ public record Chivalry(LevelingFormula bonus, int maxMultiplier)
     @Override
     public void afterMeleeHit(IToolStackView tool, ModifierEntry modifier, ToolAttackContext context, float damageDealt) {
         if (context.getAttacker() instanceof Player player) {
-            if (player.getAbsorptionAmount() < player.getAbsorptionAmount() * (float) this.maxMultiplier) {
+            if (player.getAbsorptionAmount() < player.getMaxHealth() * (float) this.maxMultiplier) {
                 float maxAbs = Math.min(player.getMaxHealth() * (float) this.maxMultiplier, player.getAbsorptionAmount() + (float) modifier.getLevel());
                 player.setAbsorptionAmount(maxAbs);
             }
@@ -67,8 +67,8 @@ public record Chivalry(LevelingFormula bonus, int maxMultiplier)
     public void onProjectileLaunch(IToolStackView tool, ModifierEntry modifier, LivingEntity entity, Projectile projectile, @Nullable AbstractArrow arrow, ModDataNBT persistentData, boolean primary) {
         if (entity instanceof Player player) {
             if (arrow != null && arrow.isCritArrow()) {
+                arrow.setBaseDamage(this.bonus.apply((float) arrow.getBaseDamage(), modifier, player.getAbsorptionAmount()));
                 player.setAbsorptionAmount(0.0f);
-                arrow.setBaseDamage(this.bonus.apply((float) arrow.getBaseDamage(), modifier));
             }
         }
     }
@@ -95,6 +95,6 @@ public record Chivalry(LevelingFormula bonus, int maxMultiplier)
     }
 
     public static Chivalry getIns() {
-        return new Chivalry(LevelingFormula.mulBase(0.05F), 2);
+        return new Chivalry(LevelingFormula.mulBase(0.03f), 2);
     }
 }

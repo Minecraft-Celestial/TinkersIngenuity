@@ -4,7 +4,7 @@
     {
       "type": "tinkers_ingenuity:chivalry_modifier",
       "bonus": {
-        "factor": 0.05,
+        "factor": 0.03,
         "operation": "multiplier_base",
         "single": false
       },

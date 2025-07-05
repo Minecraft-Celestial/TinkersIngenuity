@@ -109,7 +109,7 @@ public enum TIMaterials {
     ELFS_CRYSTAL(MaterialBuildHolder.builder("elfs_crystal")
             .craftableMaterial(TIItems.ELFS_CRYSTAL)
             .desc(b -> b
-                    .encyclopedia("Right click on the tool with the mouse carrying the part to customize its traits onto the tool, and the part will be consumed. Right click on the tool with the mouse to convert the numerical values on this tool, and the tool will be retained."))
+                    .encyclopedia("In the backpack, right-click on the tool with a part to characterize the part onto the tool, and the part will be consumed. Right-click the tool with the tool to numerically transform the tool onto the tool, and the tool will remain."))
             .definition(MaterialDefinitionData.Builder::craftable)
             .statAndShield(plat(25f).armor(2.0F, 5.0F, 6.0F, 2.0F),
                     head(790, 7.0F, Tiers.DIAMOND, 2.7F),
@@ -151,7 +151,7 @@ public enum TIMaterials {
     KNIGHT_CRYSTAL(MaterialBuildHolder.builder("knight_crystal")
             .metalMaterial(TIFluids.MOLTEN_KNIGHT_CRYSTAL)
             .desc(b -> b
-                    .encyclopedia("When attacking, increases the user's damage absorption by 1 per level, up to a maximum of 200% of maximum health, and when dealing a critical hit, all damage absorption is consumed and each damage absorbed is increased by 5%.")
+                    .encyclopedia("When attacking, increases the user's damage absorption by 1 per level, up to a maximum of 200% of maximum health, and when dealing a critical hit, all damage absorption is consumed and each damage absorbed is increased by 3%.")
                     .armor("When attacked, the wearer's damage absorption is increased by 1 point per level, up to a maximum of 200% of the wearer's maximum health, and the damage taken this time with damage absorption will not exceed 45% of the wearer's maximum health."))
             .statAndShield(plat(50f).armor(3.0F, 5.0F, 7.0F, 3.0F).toughness(1.5F).knockbackResistance(0.1F),
                     head(1622, 7.5F, Tiers.NETHERITE, 3.95F),

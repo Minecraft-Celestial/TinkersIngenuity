@@ -1,19 +1,17 @@
 package com.xiaoyue.tinkers_ingenuity.data;
 
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
-import com.tterrag.registrate.util.DataIngredient;
 import com.tterrag.registrate.util.entry.ItemEntry;
-import com.xiaoyue.tinkers_ingenuity.content.shared.holder.MetalItemEntry;
+import com.xiaoyue.celestial_invoker.content.binding.RecipeBinding;
 import com.xiaoyue.tinkers_ingenuity.content.shared.material.MaterialRecipeData;
 import com.xiaoyue.tinkers_ingenuity.data.material.TIMaterials;
 import com.xiaoyue.tinkers_ingenuity.data.modifier.TIModifierData;
 import com.xiaoyue.tinkers_ingenuity.register.TIFluids;
 import com.xiaoyue.tinkers_ingenuity.register.TIItems;
-import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -21,6 +19,7 @@ import net.minecraft.world.level.ItemLike;
 import slimeknights.mantle.registration.object.FluidObject;
 import slimeknights.tconstruct.common.TinkerTags;
 import slimeknights.tconstruct.common.registration.CastItemObject;
+import slimeknights.tconstruct.common.registration.GeodeItemObject;
 import slimeknights.tconstruct.fluids.TinkerFluids;
 import slimeknights.tconstruct.library.data.recipe.IMaterialRecipeHelper;
 import slimeknights.tconstruct.library.data.recipe.ISmelteryRecipeHelper;
@@ -34,10 +33,13 @@ import slimeknights.tconstruct.library.recipe.melting.MeltingRecipeBuilder;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.ModifierRecipeBuilder;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.shared.TinkerMaterials;
+import slimeknights.tconstruct.shared.block.SlimeType;
+import slimeknights.tconstruct.world.TinkerWorld;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
+
+import static com.xiaoyue.celestial_invoker.content.binding.RecipeBinding.unlock;
 
 public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper, IToolRecipeHelper {
     public static void acceptRecipe(RegistrateRecipeProvider pvd) {
@@ -46,42 +48,37 @@ public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper
 
     private void vanillaRecipes(RegistrateRecipeProvider pvd) {
         String material = "craft/material/";
-        this.unlock(pvd, ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, TIItems.ELFS_CRYSTAL)::unlockedBy, Items.HEART_OF_THE_SEA)
+        unlock(pvd, ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, TIItems.ELFS_CRYSTAL)::unlockedBy, Items.HEART_OF_THE_SEA)
         .requires(Items.HEART_OF_THE_SEA).requires(Items.DIAMOND).requires(Items.QUARTZ).requires(TinkerMaterials.cobalt.getIngot())
                 .save(pvd, this.prefix(TIItems.ELFS_CRYSTAL.getId(), material));
-        this.unlock(pvd, ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, TIItems.PLAGUE_BONE)::unlockedBy, TinkerMaterials.venombone.get())
+        unlock(pvd, ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, TIItems.PLAGUE_BONE)::unlockedBy, TinkerMaterials.venombone.get())
                 .requires(TinkerMaterials.venombone).requires(Items.SOUL_SAND).requires(Items.NETHER_WART)
                 .save(pvd, this.prefix(TIItems.PLAGUE_BONE.getId(), material));
-        this.metalCraft(pvd, TIItems.BLACK_GOLD);
-        this.metalCraft(pvd, TIItems.FLAME_STEEL);
-        this.metalCraft(pvd, TIItems.BLACK_FLASH_ALLOY);
-        this.metalCraft(pvd, TIItems.COLORFUL_SLIME);
-        this.metalCraft(pvd, TIItems.KNIGHT_CRYSTAL);
-    }
-
-    public void metalCraft(RegistrateRecipeProvider pvd, MetalItemEntry entry) {
-        this.unlock(pvd, ShapedRecipeBuilder.shaped(RecipeCategory.MISC, entry.block())::unlockedBy, entry.ingot().get())
-                .pattern("XXX").pattern("XXX").pattern("XXX")
-                .define('X', entry.ingot())
-                .save(pvd, this.prefix(entry.block().getId(), "block_from_ingot/"));
-        this.unlock(pvd, ShapedRecipeBuilder.shaped(RecipeCategory.MISC, entry.ingot())::unlockedBy, entry.nugget().get())
-                .pattern("XXX").pattern("XXX").pattern("XXX").define('X', entry.nugget())
-                .save(pvd, this.prefix(entry.block().getId(), "ingot_from_nugget/"));
-        this.unlock(pvd, ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, entry.ingot())::unlockedBy, entry.block().asItem())
-                .requires(entry.block()).save(pvd, this.prefix(entry.ingot().getId(), "ingot_from_block/"));
-        this.unlock(pvd, ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, entry.nugget())::unlockedBy, entry.ingot().get())
-                .requires(entry.ingot()).save(pvd, this.prefix(entry.ingot().getId(), "nugget_from_ingot/"));
-    }
-
-    private <T> T unlock(RegistrateRecipeProvider pvd, BiFunction<String, InventoryChangeTrigger.TriggerInstance, T> func, Item item) {
-        return func.apply("has_" + pvd.safeName(item), DataIngredient.items(item).getCritereon(pvd));
+        RecipeBinding.metalCraft(pvd, "craft", TIItems.BLACK_GOLD);
+        RecipeBinding.metalCraft(pvd, "craft", TIItems.FLAME_STEEL);
+        RecipeBinding.metalCraft(pvd, "craft", TIItems.BLACK_FLASH_ALLOY);
+        RecipeBinding.metalCraft(pvd, "craft", TIItems.COLORFUL_SLIME);
+        RecipeBinding.metalCraft(pvd, "craft", TIItems.KNIGHT_CRYSTAL);
+        RecipeBinding.metalCraft(pvd, "craft", TIItems.MITHRIL);
     }
 
     protected void modifierRecipe(Consumer<FinishedRecipe> cons) {
         String ability = "tools/modifier/ability/";
+        String upgrade = "tools/modifier/upgrade/";
+        String curio_ability = "tools/modifier/curio/ability/";
+        String curio_upgrade = "tools/modifier/curio/upgrade/";
         ModifierRecipeBuilder.modifier(TIModifierData.RAPID_FIRE.getId()).setTools(TinkerTags.Items.RANGED).setSlots(SlotType.ABILITY, 1)
                 .addInput(Items.AMETHYST_BLOCK).addInput(Items.REDSTONE).addInput(Items.STRING)
                 .save(cons, this.prefix(TIModifierData.RAPID_FIRE.getId(), ability));
+        ModifierRecipeBuilder.modifier(TIModifierData.BLOT_OUT.getId()).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.ABILITY, 1)
+                .addInput(Ingredient.of(ItemTags.WOOL)).addInput(Items.ENDER_PEARL)
+                .save(cons, this.prefix(TIModifierData.BLOT_OUT.getId(), curio_ability));
+        ModifierRecipeBuilder.modifier(TIModifierData.WALK_SNOW.getId()).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(Items.LEATHER_BOOTS)
+                .save(cons, this.prefix(TIModifierData.WALK_SNOW.getId(), curio_upgrade));
+        ModifierRecipeBuilder.modifier(TIModifierData.GOLDEN.getId()).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(Items.GOLD_INGOT).addInput(Items.BLACKSTONE)
+                .save(cons, this.prefix(TIModifierData.GOLDEN.getId(), curio_upgrade));
     }
 
     protected void materialBuildRecipe(Consumer<FinishedRecipe> cons) {
@@ -134,6 +131,7 @@ public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper
         this.metal(cons, TIFluids.MOLTEN_BLACK_FLASH_ALLOY).metal();
         this.metal(cons, TIFluids.MOLTEN_COLORFUL_SLIME).metal();
         this.metal(cons, TIFluids.MOLTEN_KNIGHT_CRYSTAL).metal();
+        this.metal(cons, TIFluids.MOLTEN_MITHRIL).metal();
 
         AlloyRecipeBuilder.alloy(TIFluids.MOLTEN_BLACK_GOLD, 90)
                 .addInput(TinkerFluids.moltenGold.ingredient(180))
@@ -165,6 +163,11 @@ public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper
                 .addInput(TinkerFluids.moltenDiamond.ingredient(150))
                 .addInput(TinkerFluids.moltenAmethyst.ingredient(300))
                 .save(cons, this.prefix(TIFluids.MOLTEN_KNIGHT_CRYSTAL, alloys));
+        AlloyRecipeBuilder.alloy(TIFluids.MOLTEN_MITHRIL, 90)
+                .addInput(TIFluids.TERRESTRIAL_SOLUTION.ingredient(180))
+                .addInput(TinkerFluids.moltenClay.ingredient(250))
+                .addInput(TinkerFluids.moltenEmerald.ingredient(200))
+                .save(cons, this.prefix(TIFluids.MOLTEN_MITHRIL, alloys));
 
         ItemCastingRecipeBuilder.tableRecipe(TIItems.FINAL_SHELL).setCast(Items.SHULKER_SHELL, true)
                 .setFluid(TIFluids.ENDER_COMPOUND.ingredient(100))
@@ -176,11 +179,15 @@ public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper
                 .save(cons, this.prefix(TIItems.COLOURED_GLAZE_STAR.getId(), casting));
 
         MeltingRecipeBuilder.melting(Ingredient.of(Items.DRAGON_BREATH),
-                TIFluids.DRAGON_BREATH.result(250), 1200, 30)
+                        TIFluids.DRAGON_BREATH.result(250), 1200, 30)
                 .save(cons, this.prefix(TIFluids.DRAGON_BREATH.getId(), melting));
         MeltingRecipeBuilder.melting(Ingredient.of(Items.ECHO_SHARD),
-                TIFluids.SCULK_GENE.result(45), 1200, 40)
+                        TIFluids.SCULK_GENE.result(45), 1200, 40)
                 .save(cons, this.prefix(TIFluids.SCULK_GENE.getId(), melting));
+        MeltingRecipeBuilder.melting(Ingredient.of(TinkerWorld.earthGeode.getBud(GeodeItemObject.BudSize.CLUSTER)),
+                        TinkerFluids.slime.get(SlimeType.EARTH), 1000, 1)
+                .addByproduct(TIFluids.TERRESTRIAL_SOLUTION.result(20))
+                .save(cons, this.prefix(TIFluids.TERRESTRIAL_SOLUTION.getId(), melting));
 
         MeltingFuelBuilder.fuel(TIFluids.DRAGON_BREATH.ingredient(50), 120, 2200)
                 .save(cons, this.location(fuel));

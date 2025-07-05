@@ -51,7 +51,7 @@ public interface TinkersCurioModifierHook {
         return true;
     }
 
-    default ICurio.DropRule getCurioDropRule(CurioStackView curio, int level, DamageSource source, int looting, boolean recentlyHit) {
+    default DropRule getCurioDropRule(CurioStackView curio, int level, DamageSource source, int looting, boolean recentlyHit) {
         return DropRule.DEFAULT;
     }
 
@@ -135,7 +135,7 @@ public interface TinkersCurioModifierHook {
         }
 
         @Override
-        public ICurio.DropRule getCurioDropRule(CurioStackView curio, int level, DamageSource source, int looting, boolean recent) {
+        public DropRule getCurioDropRule(CurioStackView curio, int level, DamageSource source, int looting, boolean recent) {
             for (TinkersCurioModifierHook module : modules) {
                 return module.getCurioDropRule(curio, level, source, looting, recent);
             }

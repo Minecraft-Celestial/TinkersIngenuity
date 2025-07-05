@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 
-public record CAttributeAdderModule(ResourceLocation name, Attribute attribute, AttributeModifier.Operation operation, double amount)
+public record CAttributeAdderModule(ResourceLocation name, Attribute attribute, Operation operation, double amount)
         implements ISimpleModule, TinkersCurioModifierHook {
 
     public static final RecordLoadable<CAttributeAdderModule> LOADER = RecordLoadable.create(

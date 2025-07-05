@@ -21,6 +21,7 @@ import java.util.function.DoubleSupplier;
 
 @Mixin(value = {ToolAttackUtil.class}, remap = false)
 public abstract class ToolAttackUtilMixin {
+
     @Inject(at = {@At("HEAD")}, method = {"attackEntity(Lslimeknights/tconstruct/library/tools/nbt/IToolStackView;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/entity/Entity;Ljava/util/function/DoubleSupplier;ZLnet/minecraft/world/entity/EquipmentSlot;)Z"})
     private static void tinkers_ingenuity$attackEntity$putCache(IToolStackView tool, LivingEntity attackerLiving, InteractionHand hand, Entity targetEntity, DoubleSupplier cooldownFunction, boolean isExtraAttack, EquipmentSlot sourceSlot, CallbackInfoReturnable<Boolean> cir) {
         if (attackerLiving instanceof Player player) {
