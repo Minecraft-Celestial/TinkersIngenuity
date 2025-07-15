@@ -28,7 +28,7 @@ import java.util.function.Predicate;
 
 public class ModifiableBlowpipe extends ModifiableLauncherItem {
     public ModifiableBlowpipe(ToolDefinition toolDefinition) {
-        super((new Properties()).stacksTo(1), toolDefinition);
+        super((new Item.Properties()).stacksTo(1), toolDefinition);
     }
 
     @Override

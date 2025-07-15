@@ -17,15 +17,15 @@ public record LevelingFormula(float factor, Type operation, boolean single) {
     );
 
     public static LevelingFormula add(float factor) {
-        return new LevelingFormula(factor, Type.addition, false);
+        return new LevelingFormula(factor, LevelingFormula.Type.addition, false);
     }
 
     public static LevelingFormula mulBase(float factor) {
-        return new LevelingFormula(factor, Type.multiplier_base, false);
+        return new LevelingFormula(factor, LevelingFormula.Type.multiplier_base, false);
     }
 
     public static LevelingFormula mulTotal(float factor) {
-        return new LevelingFormula(factor, Type.multiplier_total, false);
+        return new LevelingFormula(factor, LevelingFormula.Type.multiplier_total, false);
     }
 
     public float apply(float origin, ModifierEntry entry) {
