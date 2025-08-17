@@ -5,7 +5,7 @@ import com.tterrag.registrate.util.entry.ItemEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;
 import com.tterrag.registrate.util.nullness.NonNullFunction;
 import com.tterrag.registrate.util.nullness.NonNullSupplier;
-import com.xiaoyue.celestial_invoker.content.CelestialRegistrate;
+import com.xiaoyue.celestial_invoker.content.binding.CelestialRegistrate;
 import dev.xkmc.l2library.base.L2Registrate;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -42,7 +42,8 @@ public class TIRegistrate extends CelestialRegistrate {
 
     @SafeVarargs
     public final <T extends Item> ItemBuilder<T, L2Registrate> tagItem(String id, String path, NonNullFunction<Item.Properties, T> factory, TagKey<Item>... tags) {
-        return this.item(id, factory).model((ctx, pvd) -> pvd.generated(ctx, new ResourceLocation[]{pvd.modLoc("item/" + path + "/" + ctx.getName())})).tag(tags);
+        return this.item(id, factory).model((ctx, pvd) ->
+                pvd.generated(ctx, pvd.modLoc("item/" + path + "/" + ctx.getName()))).tag(tags);
     }
 
     public List<ItemEntry<Item>> castItem(String name) {
@@ -60,7 +61,9 @@ public class TIRegistrate extends CelestialRegistrate {
                         .customLoader((b, h) -> new MaterialModelBuilder<>(b, h).offset(x, y)));
     }
 
-    public FloatToolStat floatToolStat(String id, int color, float defValue, float minValue, float maxValue) {
+    public FloatToolStat floatToolStat(String id, String name, String desc, int color, float defValue, float minValue, float maxValue) {
+        addRawLang("tool_stat.tinkers_ingenuity." + id, name);
+        addRawLang("tool_stat.tinkers_ingenuity." + id + ".description", desc);
         return ToolStats.register(new FloatToolStat(new ToolStatId(new ResourceLocation(this.getModid(), id)), color, defValue, minValue, maxValue));
     }
 

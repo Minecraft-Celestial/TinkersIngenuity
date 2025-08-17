@@ -36,7 +36,7 @@ public class TIDamageTypes extends DamageTypeAndTagsGen {
 
     public TIDamageTypes(PackOutput output, CompletableFuture<HolderLookup.Provider> pvd, ExistingFileHelper helper) {
         super(output, pvd, helper, "tinkers_ingenuity");
-        (new DamageTypeAndTagsGen.DamageTypeHolder(MAGIC, new DamageType("magic", DamageScaling.NEVER, 0.1F)))
+        (new DamageTypeHolder(MAGIC, new DamageType("magic", DamageScaling.NEVER, 0.1F)))
                 .add(DamageTypeTags.BYPASSES_ARMOR, DamageTypeTags.BYPASSES_COOLDOWN, DamageTypeTags.AVOIDS_GUARDIAN_THORNS, L2DamageTypes.MAGIC, L2DamageTypes.NO_SCALE);
     }
 

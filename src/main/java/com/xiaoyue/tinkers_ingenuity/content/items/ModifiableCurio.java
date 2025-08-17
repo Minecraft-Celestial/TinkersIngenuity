@@ -2,6 +2,8 @@ package com.xiaoyue.tinkers_ingenuity.content.items;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.xiaoyue.celestial_invoker.invoker.tooltip.SubscribeTooltip;
+import com.xiaoyue.celestial_invoker.invoker.tooltip.TooltipEntry;
 import com.xiaoyue.tinkers_ingenuity.content.shared.holder.CurioStackView;
 import com.xiaoyue.tinkers_ingenuity.content.shared.hooks.specail.TinkersCurioModifierHook;
 import com.xiaoyue.tinkers_ingenuity.data.modifier.TIModifierData;
@@ -52,7 +54,7 @@ import java.util.function.BiConsumer;
 
 public class ModifiableCurio extends ModifiableItem implements ICurioItem {
     public ModifiableCurio(ToolDefinition toolDefinition) {
-        super((new Item.Properties()).stacksTo(1), toolDefinition);
+        super((new Properties()).stacksTo(1), toolDefinition);
     }
 
     public static List<SlotResult> findAll(LivingEntity entity) {
@@ -95,6 +97,13 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
         }
     }
 
+    @SubscribeTooltip(key = "item.tinkers_ingenuity.tinkers_medal")
+    public static TooltipEntry tooltip = TooltipEntry.define("Tinkers Medal");
+
+    @SubscribeTooltip(key = "item.tinkers_ingenuity.tinkers_medal.description")
+    public static TooltipEntry tooltip_desc = TooltipEntry.define(
+            "A modular cosmetic created by a craftsman that uses two pieces that can be worn in the amulet position and increase the wearer's stats based on stats.");
+
     private void addAttributeStats(ToolStack curio, UUID uuid, Multimap<Attribute, AttributeModifier> map) {
         StatsNBT stats = curio.getStats();
         map.put(Attributes.MOVEMENT_SPEED, new AttributeModifier(uuid, "curio_speed_stat", (double) stats.get(TIToolStats.CURIO_MOVEMENT_SPEED), Operation.MULTIPLY_BASE));
@@ -127,7 +136,7 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
     public void onEquip(SlotContext context, ItemStack prevStack, ItemStack stack) {
         CurioStackView tool = CurioStackView.of(context, stack);
         for (ModifierEntry entry : tool.getModifiers()) {
-            entry.getHook(TIHooks.TINKERS_CURIO).onChangeCurio(tool, entry.getLevel(), prevStack, ModifiableCurio.ChangeType.EQUIP);
+            entry.getHook(TIHooks.TINKERS_CURIO).onChangeCurio(tool, entry.getLevel(), prevStack, ChangeType.EQUIP);
         }
     }
 
@@ -135,7 +144,7 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
     public void onUnequip(SlotContext context, ItemStack newStack, ItemStack stack) {
         CurioStackView tool = CurioStackView.of(context, stack);
         for (ModifierEntry entry : tool.getModifiers()) {
-            entry.getHook(TIHooks.TINKERS_CURIO).onChangeCurio(tool, entry.getLevel(), newStack, ModifiableCurio.ChangeType.UNEQUIP);
+            entry.getHook(TIHooks.TINKERS_CURIO).onChangeCurio(tool, entry.getLevel(), newStack, ChangeType.UNEQUIP);
         }
     }
 
@@ -145,7 +154,7 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
         Iterator<ModifierEntry> iterator = tool.getModifiers().iterator();
         if (iterator.hasNext()) {
             ModifierEntry entry = iterator.next();
-            return entry.getHook(TIHooks.TINKERS_CURIO).canChangeCurio(tool, entry.getLevel(), ModifiableCurio.ChangeType.EQUIP);
+            return entry.getHook(TIHooks.TINKERS_CURIO).canChangeCurio(tool, entry.getLevel(), ChangeType.EQUIP);
         } else {
             return true;
         }
@@ -157,7 +166,7 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
         Iterator<ModifierEntry> iterator = tool.getModifiers().iterator();
         if (iterator.hasNext()) {
             ModifierEntry entry = iterator.next();
-            return entry.getHook(TIHooks.TINKERS_CURIO).canChangeCurio(tool, entry.getLevel(), ModifiableCurio.ChangeType.UNEQUIP);
+            return entry.getHook(TIHooks.TINKERS_CURIO).canChangeCurio(tool, entry.getLevel(), ChangeType.UNEQUIP);
         } else {
             return true;
         }
@@ -232,6 +241,6 @@ public class ModifiableCurio extends ModifiableItem implements ICurioItem {
 
     public enum ChangeType {
         EQUIP,
-        UNEQUIP;
+        UNEQUIP
     }
 }

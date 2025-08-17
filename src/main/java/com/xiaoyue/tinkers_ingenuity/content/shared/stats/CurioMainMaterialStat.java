@@ -1,6 +1,8 @@
 package com.xiaoyue.tinkers_ingenuity.content.shared.stats;
 
 import com.google.common.collect.ImmutableList;
+import com.xiaoyue.celestial_invoker.invoker.tooltip.SubscribeTooltip;
+import com.xiaoyue.celestial_invoker.invoker.tooltip.TooltipEntry;
 import com.xiaoyue.tinkers_ingenuity.TinkersIngenuity;
 import com.xiaoyue.tinkers_ingenuity.register.TIToolStats;
 import net.minecraft.network.chat.Component;
@@ -30,7 +32,7 @@ public record CurioMainMaterialStat(float curio_movement_speed, float curio_max_
                     CurioMainMaterialStat::new));
 
     private static final String MOVEMENT_SPEED_BONUS_PREFIX = IMaterialStats.makeTooltipKey(TinkersIngenuity.loc("curio_movement_speed"));
-    private static final String MAX_HEALTH_BONUS_PREFIX = IMaterialStats.makeTooltipKey(TinkersIngenuity.loc("curio_max_health"));;
+    private static final String MAX_HEALTH_BONUS_PREFIX = IMaterialStats.makeTooltipKey(TinkersIngenuity.loc("curio_max_health"));
     private static final String ARMOR_BONUS_PREFIX = IMaterialStats.makeTooltipKey(TinkersIngenuity.loc("curio_armor"));
     private static final String MELEE_ATTACK_BONUS_PREFIX = IMaterialStats.makeTooltipKey(TinkersIngenuity.loc("curio_melee_attack"));
     private static final String PROJECTILE_ATTACK_BONUS_PREFI = IMaterialStats.makeTooltipKey(TinkersIngenuity.loc("curio_projectile_attack"));
@@ -41,6 +43,8 @@ public record CurioMainMaterialStat(float curio_movement_speed, float curio_max_
             IMaterialStats.makeTooltip(TinkersIngenuity.loc("curio_melee_attack.description")),
             IMaterialStats.makeTooltip(TinkersIngenuity.loc("curio_projectile_attack.description")));
 
+    @SubscribeTooltip(key = "stat.tinkers_ingenuity.curio_main")
+    public static TooltipEntry tooltip = TooltipEntry.define("The main part of the accessory");
 
     @Override
     public MaterialStatType<?> getType() {
