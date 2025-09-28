@@ -10,7 +10,7 @@ public class TIMaterialSprGen extends AbstractMaterialSpriteProvider {
         for(TIMaterials mate : TIMaterials.values()) {
             MaterialRenderData render = mate.holder.render();
             if (render != null) {
-                MaterialSpriteInfoBuilder builder;
+                AbstractMaterialSpriteProvider.MaterialSpriteInfoBuilder builder;
                 if (render.parts() != null) {
                     builder = this.buildMaterial(mate.asMate()).statType(render.parts()).fallbacks(render.fallbacks());
                 } else {
