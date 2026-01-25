@@ -3,6 +3,9 @@ package com.xiaoyue.tinkers_ingenuity.data;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import com.xiaoyue.celestial_invoker.content.ancillary.BindingHandler;
+import com.xiaoyue.tinkers_ingenuity.TinkersIngenuity;
+import com.xiaoyue.tinkers_ingenuity.content.json.condition.TIMaterialCondition;
+import com.xiaoyue.tinkers_ingenuity.content.shared.holder.MaterialBuildHolder;
 import com.xiaoyue.tinkers_ingenuity.content.shared.material.MaterialRecipeData;
 import com.xiaoyue.tinkers_ingenuity.data.material.TIMaterials;
 import com.xiaoyue.tinkers_ingenuity.data.modifier.TIModifierData;
@@ -10,12 +13,18 @@ import com.xiaoyue.tinkers_ingenuity.register.TIFluids;
 import com.xiaoyue.tinkers_ingenuity.register.TIItems;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
+import net.minecraftforge.common.Tags;
+import net.minecraftforge.common.crafting.CompoundIngredient;
+import slimeknights.mantle.recipe.data.ConsumerWrapperBuilder;
+import slimeknights.mantle.recipe.ingredient.SizedIngredient;
 import slimeknights.mantle.registration.object.FluidObject;
 import slimeknights.tconstruct.TConstruct;
 import slimeknights.tconstruct.common.TinkerTags;
@@ -26,35 +35,53 @@ import slimeknights.tconstruct.library.data.recipe.IMaterialRecipeHelper;
 import slimeknights.tconstruct.library.data.recipe.ISmelteryRecipeHelper;
 import slimeknights.tconstruct.library.data.recipe.IToolRecipeHelper;
 import slimeknights.tconstruct.library.data.recipe.SmelteryRecipeBuilder;
+import slimeknights.tconstruct.library.json.predicate.material.MaterialPredicate;
+import slimeknights.tconstruct.library.json.predicate.material.MaterialStatTypePredicate;
 import slimeknights.tconstruct.library.materials.definition.MaterialId;
+import slimeknights.tconstruct.library.materials.stats.MaterialStatsId;
 import slimeknights.tconstruct.library.recipe.alloying.AlloyRecipeBuilder;
 import slimeknights.tconstruct.library.recipe.casting.ItemCastingRecipeBuilder;
 import slimeknights.tconstruct.library.recipe.fuel.MeltingFuelBuilder;
+import slimeknights.tconstruct.library.recipe.ingredient.MaterialValueIngredient;
 import slimeknights.tconstruct.library.recipe.melting.MeltingRecipeBuilder;
 import slimeknights.tconstruct.library.recipe.modifiers.adding.ModifierRecipeBuilder;
+import slimeknights.tconstruct.library.recipe.partbuilder.PartRecipeBuilder;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.shared.TinkerMaterials;
 import slimeknights.tconstruct.shared.block.SlimeType;
+import slimeknights.tconstruct.smeltery.TinkerSmeltery;
+import slimeknights.tconstruct.tables.TinkerTables;
+import slimeknights.tconstruct.tools.TinkerModifiers;
+import slimeknights.tconstruct.tools.TinkerToolParts;
+import slimeknights.tconstruct.tools.TinkerTools;
+import slimeknights.tconstruct.tools.data.ModifierIds;
+import slimeknights.tconstruct.tools.stats.PlatingMaterialStats;
 import slimeknights.tconstruct.world.TinkerWorld;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
+import static com.tterrag.registrate.providers.RegistrateRecipeProvider.has;
 import static com.xiaoyue.celestial_invoker.content.ancillary.BindingHandler.unlock;
 
 public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper, IToolRecipeHelper {
+
     public static void acceptRecipe(RegistrateRecipeProvider pvd) {
-        (new TIRecipeGen()).onRecipeGen(pvd);
+        new TIRecipeGen().onRecipeGen(pvd);
     }
 
     private void vanillaRecipes(RegistrateRecipeProvider pvd) {
         String material = "craft/material/";
         unlock(pvd, ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, TIItems.ELFS_CRYSTAL)::unlockedBy, Items.HEART_OF_THE_SEA)
-        .requires(Items.HEART_OF_THE_SEA).requires(Items.DIAMOND).requires(Items.QUARTZ).requires(TinkerMaterials.cobalt.getIngot())
+                .requires(Items.HEART_OF_THE_SEA).requires(Items.DIAMOND).requires(Items.QUARTZ).requires(TinkerMaterials.cobalt.getIngot())
                 .save(pvd, this.prefix(TIItems.ELFS_CRYSTAL.getId(), material));
         unlock(pvd, ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, TIItems.PLAGUE_BONE)::unlockedBy, TinkerMaterials.venombone.get())
                 .requires(TinkerMaterials.venombone).requires(Items.SOUL_SAND).requires(Items.NETHER_WART)
                 .save(pvd, this.prefix(TIItems.PLAGUE_BONE.getId(), material));
+        unlock(pvd, ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, TIItems.SEA_SNAIL)::unlockedBy, Items.NAUTILUS_SHELL)
+                .requires(Items.NAUTILUS_SHELL).requires(Items.GOLD_INGOT).requires(Items.DRIED_KELP_BLOCK).requires(Items.COPPER_INGOT)
+                .save(pvd, this.prefix(TIItems.SEA_SNAIL.getId(), material));
         BindingHandler.metalCraft(pvd, "craft/", TIItems.BLACK_GOLD);
         BindingHandler.metalCraft(pvd, "craft/", TIItems.FLAME_STEEL);
         BindingHandler.metalCraft(pvd, "craft/", TIItems.BLACK_FLASH_ALLOY);
@@ -65,21 +92,99 @@ public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper
 
     protected void modifierRecipe(Consumer<FinishedRecipe> cons) {
         String ability = "tools/modifier/ability/";
+        String abilitySalvage = "tools/modifier/ability/salvage/";
         String upgrade = "tools/modifier/upgrade/";
-        String curio_ability = "tools/modifier/curio/ability/";
-        String curio_upgrade = "tools/modifier/curio/upgrade/";
+        String upgradeSalvage = "tools/modifier/upgrade/salvage/";
+        String curioAbility = "tools/modifier/curio/ability/";
+        String curioAbilitySalvage = "tools/modifier/curio/ability/salvage/";
+        String curioUpgrade = "tools/modifier/curio/upgrade/";
+        String curioUpgradeSalvage = "tools/modifier/curio/upgrade/salvage/";
         ModifierRecipeBuilder.modifier(TIModifierData.RAPID_FIRE.getId()).setTools(TinkerTags.Items.RANGED).setSlots(SlotType.ABILITY, 1)
                 .addInput(Items.AMETHYST_BLOCK).addInput(Items.REDSTONE).addInput(Items.STRING)
-                .save(cons, this.prefix(TIModifierData.RAPID_FIRE.getId(), ability));
+                .saveSalvage(cons, prefix(TIModifierData.RAPID_FIRE.getId(), abilitySalvage))
+                .setMaxLevel(1).save(cons, this.prefix(TIModifierData.RAPID_FIRE.getId(), ability));
+        ModifierRecipeBuilder.modifier(TIModifierData.SCHOLAR.getId()).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(Ingredient.of(Items.BOOK)).addInput(Items.EMERALD).setMaxLevel(5)
+                .saveSalvage(cons, this.prefix(TIModifierData.SCHOLAR.getId(), curioUpgradeSalvage))
+                .save(cons, this.prefix(TIModifierData.SCHOLAR.getId(), curioUpgrade));
         ModifierRecipeBuilder.modifier(TIModifierData.BLOT_OUT.getId()).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.ABILITY, 1)
                 .addInput(Ingredient.of(ItemTags.WOOL)).addInput(Items.ENDER_PEARL)
-                .save(cons, this.prefix(TIModifierData.BLOT_OUT.getId(), curio_ability));
+                .saveSalvage(cons, this.prefix(TIModifierData.BLOT_OUT.getId(), curioAbilitySalvage))
+                .setMaxLevel(1).save(cons, this.prefix(TIModifierData.BLOT_OUT.getId(), curioAbility));
         ModifierRecipeBuilder.modifier(TIModifierData.WALK_SNOW.getId()).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
-                .addInput(Items.LEATHER_BOOTS)
-                .save(cons, this.prefix(TIModifierData.WALK_SNOW.getId(), curio_upgrade));
+                .addInput(Items.LEATHER_BOOTS).setMaxLevel(1)
+                .saveSalvage(cons, this.prefix(TIModifierData.WALK_SNOW.getId(), curioUpgradeSalvage))
+                .save(cons, this.prefix(TIModifierData.WALK_SNOW.getId(), curioUpgrade));
         ModifierRecipeBuilder.modifier(TIModifierData.GOLDEN.getId()).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
-                .addInput(Items.GOLD_INGOT).addInput(Items.BLACKSTONE)
-                .save(cons, this.prefix(TIModifierData.GOLDEN.getId(), curio_upgrade));
+                .addInput(Items.GOLD_INGOT).addInput(Items.BLACKSTONE).setMaxLevel(1)
+                .saveSalvage(cons, this.prefix(TIModifierData.GOLDEN.getId(), curioUpgradeSalvage))
+                .save(cons, this.prefix(TIModifierData.GOLDEN.getId(), curioUpgrade));
+        ModifierRecipeBuilder.modifier(TIModifierData.FLAME_HEART.getId()).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.ABILITY, 1)
+                .addInput(Ingredient.of(Items.NETHERITE_INGOT)).addInput(Items.OBSIDIAN).addInput(Items.MAGMA_CREAM)
+                .saveSalvage(cons, this.prefix(TIModifierData.FLAME_HEART.getId(), curioAbilitySalvage))
+                .setMaxLevel(1).save(cons, this.prefix(TIModifierData.FLAME_HEART.getId(), curioAbility));
+        ModifierRecipeBuilder.modifier(ModifierIds.reach).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.ABILITY, 1)
+                .addInput(Items.PISTON).addInput(Items.PISTON).addInput(TinkerMaterials.queensSlime.getIngotTag())
+                .addInput(Items.SLIME_BALL).addInput(Items.SLIME_BALL)
+                .saveSalvage(cons, this.prefix(ModifierIds.reach, curioAbilitySalvage))
+                .setMaxLevel(3).save(cons, this.prefix(ModifierIds.reach, curioAbility));
+        ModifierRecipeBuilder.modifier(ModifierIds.strength).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(SizedIngredient.of(Ingredient.of(Items.IRON_INGOT), 16))
+                .addInput(Items.BLAZE_POWDER).setMaxLevel(5)
+                .saveSalvage(cons, this.prefix(ModifierIds.strength, curioUpgradeSalvage))
+                .save(cons, this.prefix(ModifierIds.strength, curioUpgrade));
+        ModifierRecipeBuilder.modifier(ModifierIds.stepUp).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.ABILITY, 1)
+                .addInput(Items.LEATHER).addInput(Items.LEATHER).addInput(Items.SCAFFOLDING).addInput(Items.SCAFFOLDING)
+                .saveSalvage(cons, this.prefix(ModifierIds.stepUp, curioAbilitySalvage))
+                .setMaxLevel(5).save(cons, this.prefix(ModifierIds.stepUp, curioAbility));
+        ModifierRecipeBuilder.modifier(ModifierIds.haste).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(SizedIngredient.of(Ingredient.of(Items.REDSTONE_BLOCK), 5))
+                .saveSalvage(cons, this.prefix(ModifierIds.haste, curioUpgradeSalvage))
+                .setMaxLevel(4).save(cons, this.prefix(ModifierIds.haste, curioUpgrade));
+        ModifierRecipeBuilder.modifier(ModifierIds.swiftstrike).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(SizedIngredient.of(Ingredient.of(Items.AMETHYST_BLOCK), 18))
+                .saveSalvage(cons, this.prefix(ModifierIds.swiftstrike, curioUpgradeSalvage))
+                .setMaxLevel(3).save(cons, this.prefix(ModifierIds.swiftstrike, curioUpgrade));
+        ModifierRecipeBuilder.modifier(ModifierIds.protection).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.ABILITY, 1)
+                .addInput(Ingredient.of(TinkerModifiers.goldReinforcement)).addInput(Ingredient.of(TinkerModifiers.obsidianReinforcement))
+                .addInput(Ingredient.of(TinkerModifiers.ironReinforcement)).addInput(Ingredient.of(TinkerModifiers.searedReinforcement))
+                .addInput(Ingredient.of(TinkerModifiers.cobaltReinforcement))
+                .saveSalvage(cons, this.prefix(ModifierIds.swiftstrike, curioAbilitySalvage))
+                .setMaxLevel(2).save(cons, this.prefix(ModifierIds.swiftstrike, curioAbility));
+        ModifierRecipeBuilder.modifier(ModifierIds.projectileProtection).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(SizedIngredient.of(Ingredient.of(TinkerModifiers.ironReinforcement), 6))
+                .saveSalvage(cons, this.prefix(ModifierIds.projectileProtection, curioUpgradeSalvage))
+                .setMaxLevel(3).save(cons, this.prefix(ModifierIds.projectileProtection, curioUpgrade));
+        ModifierRecipeBuilder.modifier(ModifierIds.fireProtection).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(SizedIngredient.of(Ingredient.of(TinkerModifiers.searedReinforcement), 6))
+                .saveSalvage(cons, this.prefix(ModifierIds.fireProtection, curioUpgradeSalvage))
+                .setMaxLevel(3).save(cons, this.prefix(ModifierIds.fireProtection, curioUpgrade));
+        ModifierRecipeBuilder.modifier(ModifierIds.meleeProtection).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(SizedIngredient.of(Ingredient.of(TinkerModifiers.cobaltReinforcement), 6))
+                .saveSalvage(cons, this.prefix(ModifierIds.meleeProtection, curioUpgradeSalvage))
+                .setMaxLevel(3).save(cons, this.prefix(ModifierIds.meleeProtection, curioUpgrade));
+         ModifierRecipeBuilder.modifier(ModifierIds.blastProtection).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(SizedIngredient.of(Ingredient.of(TinkerModifiers.emeraldReinforcement), 6))
+                .saveSalvage(cons, this.prefix(ModifierIds.blastProtection, curioUpgradeSalvage))
+                .setMaxLevel(3).save(cons, this.prefix(ModifierIds.blastProtection, curioUpgrade));
+        ModifierRecipeBuilder.modifier(ModifierIds.magicProtection).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(SizedIngredient.of(Ingredient.of(TinkerModifiers.goldReinforcement), 6))
+                .saveSalvage(cons, this.prefix(ModifierIds.magicProtection, curioUpgradeSalvage))
+                .setMaxLevel(3).save(cons, this.prefix(ModifierIds.magicProtection, curioUpgrade));
+        ModifierRecipeBuilder.modifier(TinkerModifiers.magnetic).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(Ingredient.of(Items.COMPASS)).setMaxLevel(3)
+                .saveSalvage(cons, this.prefix(TinkerModifiers.magnetic, curioUpgradeSalvage))
+                .save(cons, this.prefix(TinkerModifiers.magnetic, curioUpgrade));
+        ModifierRecipeBuilder.modifier(ModifierIds.luck).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.ABILITY, 1)
+                .addInput(Ingredient.of(Items.LAPIS_BLOCK)).addInput(Ingredient.of(Items.LAPIS_BLOCK))
+                .addInput(Ingredient.of(Items.GOLD_BLOCK)).addInput(Ingredient.of(ItemTags.FLOWERS)).setMaxLevel(1)
+                .saveSalvage(cons, this.prefix(ModifierIds.luck, curioAbilitySalvage))
+                .save(cons, this.prefix(ModifierIds.luck, curioAbility));
+        ModifierRecipeBuilder.modifier(ModifierIds.speedy).setTools(TITagGen.MODIFIABLE_CURIO).setSlots(SlotType.UPGRADE, 1)
+                .addInput(Ingredient.of(Items.REDSTONE_BLOCK)).addInput(Ingredient.of(Items.REDSTONE_BLOCK))
+                .addInput(Ingredient.of(Items.FEATHER)).addInput(Ingredient.of(Items.FEATHER))
+                .saveSalvage(cons, this.prefix(ModifierIds.speedy, curioUpgradeSalvage))
+                .setMaxLevel(2).save(cons, this.prefix(ModifierIds.speedy, curioUpgrade));
     }
 
     protected void materialBuildRecipe(Consumer<FinishedRecipe> cons) {
@@ -115,6 +220,7 @@ public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper
         this.toolBuilding(cons, TIItems.BLOWPIPE.get(), building);
         this.partRecipes(cons, TIItems.BLOWPIPE_TUBE.get(), this.cast("blowpipe_tube", TIItems.BLOWPIPE_TUBE_CAST), 4, part, cast);
         this.partRecipes(cons, TIItems.BLOWPIPE_MOUTH.get(), this.cast("blowpipe_mouth", TIItems.BLOWPIPE_MOUTH_CAST), 2, part, cast);
+        this.toolBuilding(cons, TIItems.METEOR_SPEAR.get(), building);
     }
 
     private CastItemObject cast(String id, List<ItemEntry<Item>> casts) {
@@ -178,7 +284,14 @@ public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper
                 .setFluid(TinkerFluids.moltenGlass.ingredient(2000))
                 .setCoolingTime(80)
                 .save(cons, this.prefix(TIItems.COLOURED_GLAZE_STAR.getId(), casting));
+        ItemCastingRecipeBuilder.tableRecipe(TIItems.BLACK_DRAGON_SUBSTANCE).setCast(Items.DRAGON_HEAD, true)
+                .setFluid(TIFluids.BLACK_DRAGON_GENE.ingredient(300))
+                .setCoolingTime(30)
+                .save(cons, this.prefix(TIItems.BLACK_DRAGON_SUBSTANCE.getId(), casting));
 
+        MeltingRecipeBuilder.melting(Ingredient.of(TinkerModifiers.dragonScale),
+                        TIFluids.BLACK_DRAGON_GENE.result(75), 1800, 20)
+                .save(cons, this.prefix(TIFluids.BLACK_DRAGON_GENE.getId(), melting));
         MeltingRecipeBuilder.melting(Ingredient.of(Items.DRAGON_BREATH),
                         TIFluids.DRAGON_BREATH.result(250), 1200, 30)
                 .save(cons, this.prefix(TIFluids.DRAGON_BREATH.getId(), melting));
@@ -198,12 +311,86 @@ public class TIRecipeGen implements ISmelteryRecipeHelper, IMaterialRecipeHelper
         return this.molten(consumer, fluid).castingFolder("smeltery/casting/metal").meltingFolder("smeltery/melting/metal");
     }
 
+    public void addMiscArmorRecipe(Consumer<FinishedRecipe> cons) {
+        String parts = "misc_armor/parts/";
+        for (TIMaterials value : TIMaterials.values()) {
+            String prefix = parts + value.asMate().getPath() + "/";
+            MaterialBuildHolder holder = value.holder;
+            if (holder.definition() != null && holder.definition().craftable() && holder.stats() != null) {
+                if (holder.stats().armor() != null) {
+                    PartRecipeBuilder.partRecipe(TinkerToolParts.maille.get())
+                            .setCost(2).setPattern(TinkerToolParts.maille.getId())
+                            .setPatternItem(CompoundIngredient.of(Ingredient.of(TinkerTags.Items.DEFAULT_PATTERNS),
+                                    Ingredient.of(TinkerSmeltery.mailleCast.get())))
+                            .save(cons, prefix(TinkerToolParts.maille.getId(), prefix));
+                    PartRecipeBuilder.partRecipe(TinkerToolParts.plating.get(ArmorItem.Type.HELMET))
+                            .setCost(3).setPattern(TConstruct.getResource("helmet_plating"))
+                            .setPatternItem(CompoundIngredient.of(Ingredient.of(TinkerTags.Items.DEFAULT_PATTERNS),
+                                    Ingredient.of(TinkerSmeltery.helmetPlatingCast.get())))
+                            .save(cons, prefix(TinkerToolParts.plating.get(ArmorItem.Type.HELMET).getStatType(), prefix));
+                    PartRecipeBuilder.partRecipe(TinkerToolParts.plating.get(ArmorItem.Type.CHESTPLATE))
+                            .setCost(6).setPattern(TConstruct.getResource("chestplate_plating"))
+                            .setPatternItem(CompoundIngredient.of(Ingredient.of(TinkerTags.Items.DEFAULT_PATTERNS),
+                                    Ingredient.of(TinkerSmeltery.chestplatePlatingCast.get())))
+                            .save(cons, prefix(TinkerToolParts.plating.get(ArmorItem.Type.CHESTPLATE).getStatType(), prefix));
+                    PartRecipeBuilder.partRecipe(TinkerToolParts.plating.get(ArmorItem.Type.LEGGINGS))
+                            .setCost(5).setPattern(TConstruct.getResource("leggings_plating"))
+                            .setPatternItem(CompoundIngredient.of(Ingredient.of(TinkerTags.Items.DEFAULT_PATTERNS),
+                                    Ingredient.of(TinkerSmeltery.leggingsPlatingCast.get())))
+                            .save(cons, prefix(TinkerToolParts.plating.get(ArmorItem.Type.LEGGINGS).getStatType(), prefix));
+                    PartRecipeBuilder.partRecipe(TinkerToolParts.plating.get(ArmorItem.Type.BOOTS))
+                            .setCost(3).setPattern(TConstruct.getResource("boots_plating"))
+                            .setPatternItem(CompoundIngredient.of(Ingredient.of(TinkerTags.Items.DEFAULT_PATTERNS),
+                                    Ingredient.of(TinkerSmeltery.bootsPlatingCast.get())))
+                            .save(cons, prefix(TinkerToolParts.plating.get(ArmorItem.Type.BOOTS).getStatType(), prefix));
+                }
+            }
+        }
+        // travelers
+        Consumer<FinishedRecipe> shapedMaterial = ConsumerWrapperBuilder.wrap(TinkerTables.shapedMaterialRecipeSerializer.get()).build(cons);
+        Function<MaterialStatsId, Ingredient> materialsCosting = type -> MaterialValueIngredient.of(MaterialPredicate.and(TIMaterialCondition.NO_MOLTEN_INGENUITY_MATERIAL,
+                new MaterialStatTypePredicate(type)), 1);
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, TinkerTools.travelersGear.get(ArmorItem.Type.HELMET))
+                .pattern("l l")
+                .pattern("glg")
+                .pattern("c c")
+                .define('c', materialsCosting.apply(PlatingMaterialStats.HELMET.getId()))
+                .define('l', Tags.Items.LEATHER)
+                .define('g', Tags.Items.GLASS_PANES_COLORLESS)
+                .unlockedBy("has_item", has(Tags.Items.LEATHER))
+                .save(shapedMaterial, TinkersIngenuity.loc("misc_armor/ingenuity_travelers_goggles"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, TinkerTools.travelersGear.get(ArmorItem.Type.CHESTPLATE))
+                .pattern("l l")
+                .pattern("lcl")
+                .pattern("lcl")
+                .define('c', materialsCosting.apply(PlatingMaterialStats.CHESTPLATE.getId()))
+                .define('l', Tags.Items.LEATHER)
+                .unlockedBy("has_item", has(Tags.Items.LEATHER))
+                .save(shapedMaterial, TinkersIngenuity.loc("misc_armor/ingenuity_travelers_chestplate"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, TinkerTools.travelersGear.get(ArmorItem.Type.LEGGINGS))
+                .pattern("lll")
+                .pattern("c c")
+                .pattern("l l")
+                .define('c', materialsCosting.apply(PlatingMaterialStats.LEGGINGS.getId()))
+                .define('l', Tags.Items.LEATHER)
+                .unlockedBy("has_item", has(Tags.Items.LEATHER))
+                .save(shapedMaterial, TinkersIngenuity.loc("misc_armor/ingenuity_travelers_pants"));
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, TinkerTools.travelersGear.get(ArmorItem.Type.BOOTS))
+                .pattern("c c")
+                .pattern("l l")
+                .define('c', materialsCosting.apply(PlatingMaterialStats.BOOTS.getId()))
+                .define('l', Tags.Items.LEATHER)
+                .unlockedBy("has_item", has(Tags.Items.LEATHER))
+                .save(shapedMaterial, TinkersIngenuity.loc("misc_armor/ingenuity_travelers_boots"));
+    }
+
     public void onRecipeGen(RegistrateRecipeProvider pvd) {
         this.vanillaRecipes(pvd);
         this.modifierRecipe(pvd);
         this.materialBuildRecipe(pvd);
         this.partToolRecipes(pvd);
         this.smelteryRecipes(pvd);
+        this.addMiscArmorRecipe(pvd);
     }
 
     @Override

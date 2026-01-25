@@ -11,11 +11,11 @@ import com.xiaoyue.tinkers_ingenuity.content.json.variable.StatOperation;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.defense.Crystallization;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.defense.KnightBloodline;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.defense.VulnerabilityInsurance;
+import com.xiaoyue.tinkers_ingenuity.content.modifier.general.Alien;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.general.Chivalry;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.module.building.AllFloatStatCopyModule;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.module.building.StatWithTraitCountModule;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.module.combat.CreateSourceModule;
-import com.xiaoyue.tinkers_ingenuity.content.modifier.module.combat.CriticalChanceModule;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.module.combat.ExtraMagicAttackModule;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.module.combat.ForceAddEffectModule;
 import com.xiaoyue.tinkers_ingenuity.content.modifier.module.curios.*;
@@ -34,11 +34,11 @@ import slimeknights.tconstruct.library.data.tinkering.AbstractModifierProvider;
 import slimeknights.tconstruct.library.modifiers.modules.behavior.AttributeModule;
 import slimeknights.tconstruct.library.modifiers.modules.build.ModifierSlotModule;
 import slimeknights.tconstruct.library.modifiers.modules.build.StatBoostModule;
+import slimeknights.tconstruct.library.modifiers.modules.capacity.OverslimeModule;
 import slimeknights.tconstruct.library.modifiers.util.ModifierLevelDisplay;
 import slimeknights.tconstruct.library.tools.SlotType;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import slimeknights.tconstruct.tools.TinkerModifiers;
-import slimeknights.tconstruct.tools.modifiers.slotless.OverslimeModifier;
 
 public class TIModifierGen extends AbstractModifierProvider {
     public TIModifierGen(PackOutput packOutput) {
@@ -59,12 +59,13 @@ public class TIModifierGen extends AbstractModifierProvider {
                 .addModule(StatBoostModule.multiplyBase(ToolStats.ATTACK_DAMAGE).flat(0.2F))
                 .addModule(StatBoostModule.multiplyBase(ToolStats.PROJECTILE_DAMAGE).flat(0.2F))
                 .addModule(CreateSourceModule.any(TIDamageState.BYPASS_ARMOR));
-        buildModifier(TIModifierData.BE_IMPOLITE.getId())
-                .addModule(CriticalChanceModule.any(1.0F));
+        buildModifier(TIModifierData.BE_IMPOLITE.getId()).levelDisplay(ModifierLevelDisplay.NO_LEVELS);
         buildModifier(TIModifierData.PENETRATING_STAR.getId())
+                .levelDisplay(ModifierLevelDisplay.NO_LEVELS)
                 .addModule(CreateSourceModule.any(TIDamageState.BYPASS_ENTITY_INV))
                 .addModule(CreateSourceModule.any(TIDamageState.BYPASS_COOLDOWN));
         buildModifier(TIModifierData.DELICATE.getId())
+                .levelDisplay(ModifierLevelDisplay.NO_LEVELS)
                 .addModule(StatBoostModule.multiplyBase(ToolStats.MINING_SPEED).flat(0.49F))
                 .addModule(StatBoostModule.multiplyBase(ToolStats.ATTACK_DAMAGE).flat(0.49F))
                 .addModule(StatBoostModule.multiplyBase(ToolStats.PROJECTILE_DAMAGE).flat(0.49F))
@@ -72,15 +73,14 @@ public class TIModifierGen extends AbstractModifierProvider {
         buildModifier(TIModifierData.DEADLY_PLAGUE.getId())
                 .addModule(ForceAddEffectModule.get(TIEffects.DEADLY_PLAGUE.get(), 1, 200));
         buildModifier(TIModifierData.COLORFUL_SLIME.getId())
-                .addModule(AllFloatStatCopyModule.get(OverslimeModifier.OVERSLIME_STAT,
+                .addModule(AllFloatStatCopyModule.get(OverslimeModule.OVERSLIME_STAT,
                         StatOperation.multiplier_base, 5.0E-5F)).priority(22);
         buildModifier(TIModifierData.COOPERATION.getId()).levelDisplay(ModifierLevelDisplay.NO_LEVELS)
                 .addModule(StatWithTraitCountModule.get(ToolStats.DURABILITY, StatOperation.multiplier_base, 0.15F,
                         true, TinkerModifiers.overslime.getId()))
-                .addModule(StatWithTraitCountModule.get(OverslimeModifier.OVERSLIME_STAT, StatOperation.multiplier_base, 0.15F,
+                .addModule(StatWithTraitCountModule.get(OverslimeModule.OVERSLIME_STAT, StatOperation.multiplier_base, 0.15F,
                         true, TinkerModifiers.overslime.getId()));
         buildModifier(TIModifierData.CRYSTALLIZATION.getId())
-                .levelDisplay(ModifierLevelDisplay.NO_LEVELS)
                 .addModule(Crystallization.getIns());
         buildModifier(TIModifierData.VULNERABILITY_INSURANCE.getId())
                 .levelDisplay(ModifierLevelDisplay.NO_LEVELS)
@@ -118,6 +118,15 @@ public class TIModifierGen extends AbstractModifierProvider {
                 .addModule(AttributeModule.builder(Attributes.ATTACK_SPEED, AttributeModifier.Operation.MULTIPLY_BASE).eachLevel(0.12f));
         buildModifier(TIModifierData.DEMONIC.getId())
                 .addModule(SimpleProtectionModule.any(TISourceCondition.IS_MAGIC, LevelingFormula.mulBase(0.45f)));
+        buildModifier(TIModifierData.SCHOLAR.getId())
+                .addModule(CPickupExpBonusModule.any(LevelingFormula.mulBase(0.15f)));
+        buildModifier(TIModifierData.ALIEN.getId())
+                .addModules(Alien.getIns());
+        buildModifier(TIModifierData.FLAME_HEART.getId()).levelDisplay(ModifierLevelDisplay.NO_LEVELS);
+        buildModifier(TIModifierData.MOIST.getId()).levelDisplay(ModifierLevelDisplay.NO_LEVELS);
+        buildModifier(TIModifierData.AQUATIC.getId())
+                .addModule(MixedModificationModule.get(TIEntityCondition.IN_WATER_OR_RAIN,
+                        MultiBonusHelper.addAll(ToolStats.DRAW_SPEED), LevelingFormula.mulBase(0.18f)));
     }
 
     @Override

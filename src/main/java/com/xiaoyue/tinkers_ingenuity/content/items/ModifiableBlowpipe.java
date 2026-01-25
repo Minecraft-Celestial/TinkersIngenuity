@@ -35,7 +35,9 @@ public class ModifiableBlowpipe extends ModifiableLauncherItem {
     }
 
     @SubscribeTooltip
-    public static TooltipHolder tooltipHolder = TooltipHolder.define(
+    public static TooltipHolder tooltips = TooltipHolder.define(
+            TooltipEntry.define("pattern.tinkers_ingenuity.blowpipe_mouth", "Blowpipe Mouth"),
+            TooltipEntry.define("pattern.tinkers_ingenuity.blowpipe_tube", "Blowpipe Tube"),
             TooltipEntry.define("item.tinkers_ingenuity.blowpipe", "Blowpipe"),
             TooltipEntry.define("item.tinkers_ingenuity.blowpipe.description",
                     "A modular ranged weapon that fires in bursts using two parts, but fires arrows at a low velocity."));
@@ -47,7 +49,7 @@ public class ModifiableBlowpipe extends ModifiableLauncherItem {
         if (tool.isBroken()) {
             return InteractionResultHolder.fail(stack);
         } else {
-            boolean hasAmmo = BowAmmoModifierHook.hasAmmo(tool, stack, pPlayer, this.getAllSupportedProjectiles());
+            boolean hasAmmo = !BowAmmoModifierHook.getAmmo(tool, stack, pPlayer, this.getAllSupportedProjectiles()).isEmpty();
             if (this.toolCheckAndShoot(tool, stack, pPlayer, pLevel, hasAmmo)) {
                 ToolDamageUtil.damageAnimated(tool, 2, pPlayer, pUsedHand);
             }

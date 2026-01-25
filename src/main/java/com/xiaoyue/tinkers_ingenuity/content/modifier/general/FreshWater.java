@@ -2,7 +2,6 @@ package com.xiaoyue.tinkers_ingenuity.content.modifier.general;
 
 import com.xiaoyue.tinkers_ingenuity.content.generic.SimpleModifier;
 import com.xiaoyue.tinkers_ingenuity.content.shared.hooks.specail.MenuSlotClickModifierHook;
-import com.xiaoyue.tinkers_ingenuity.mixin.ToolStackInvoker;
 import com.xiaoyue.tinkers_ingenuity.register.TIHooks;
 import com.xiaoyue.tinkers_ingenuity.utils.TinkerUtils;
 import net.minecraft.nbt.CompoundTag;
@@ -14,22 +13,19 @@ import net.minecraftforge.event.ItemStackedOnOtherEvent;
 import org.jetbrains.annotations.Nullable;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.modifiers.ModifierEntry;
-import slimeknights.tconstruct.library.modifiers.ModifierHooks;
-import slimeknights.tconstruct.library.modifiers.hook.build.RawDataModifierHook;
 import slimeknights.tconstruct.library.module.ModuleHookMap;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
 import slimeknights.tconstruct.library.tools.nbt.ModifierNBT;
-import slimeknights.tconstruct.library.tools.nbt.StatsNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.part.IToolPart;
-import slimeknights.tconstruct.library.utils.RestrictedCompoundTag;
 
 import java.util.List;
 
-public class FreshWater extends SimpleModifier implements MenuSlotClickModifierHook, RawDataModifierHook {
+public class FreshWater extends SimpleModifier implements MenuSlotClickModifierHook {
 
-    private final String TAG_COPY_STATS = "freshWater_copyStats";
-    private final String TAG_COPY_TRAITS = "freshWater_copyTraits";
+    public static final String TAG_COPY_STATS = "freshWater_copyStats";
+    public static final String TAG_COPY_MULTIPLIERS = "freshWater_copyMultipliers";
+    public static final String TAG_COPY_TRAITS = "freshWater_copyTraits";
 
     @Override
     public boolean isSingleLevel() {
@@ -37,8 +33,8 @@ public class FreshWater extends SimpleModifier implements MenuSlotClickModifierH
     }
 
     @Override
-    protected void addHooks(ModuleHookMap.Builder builder) {
-        builder.addHook(this, TIHooks.MENU_SLOT_CLICK, ModifierHooks.RAW_DATA);
+    public void addHooks(ModuleHookMap.Builder builder) {
+        builder.addHook(this, TIHooks.MENU_SLOT_CLICK);
     }
 
     private void updateTraits(ToolStack tool, ItemStack part) {
@@ -60,9 +56,10 @@ public class FreshWater extends SimpleModifier implements MenuSlotClickModifierH
     public void updateStats(ToolStack tool, ToolStack target) {
         ItemStack stack = tool.createStack();
         CompoundTag tag = stack.getOrCreateTag();
-        if (tool.getDefinition().equals(target.getDefinition()) && target.getUpgrades().isEmpty()) {
+        if (tool.getDefinition().equals(target.getDefinition()) && target.getUpgrades().isEmpty() && target.getModifierLevel(this) < 1) {
             tag.put(TAG_COPY_STATS, target.getStats().serializeToNBT());
-            ((ToolStackInvoker) tool).callSetStats(target.getStats());
+            tag.put(TAG_COPY_MULTIPLIERS, target.getMultipliers().serializeToNBT());
+            tool.rebuildStats();
         }
     }
 
@@ -93,18 +90,5 @@ public class FreshWater extends SimpleModifier implements MenuSlotClickModifierH
             });
         }
         return null;
-    }
-
-    @Override
-    public void addRawData(IToolStackView tool, ModifierEntry modifier, RestrictedCompoundTag tag) {
-        ItemStack stack = ((ToolStack) tool).createStack();
-        CompoundTag nbt = stack.getOrCreateTag();
-        if (nbt.contains(TAG_COPY_STATS)) {
-            ((ToolStackInvoker) tool).callSetStats(StatsNBT.readFromNBT(nbt.getCompound(TAG_COPY_STATS)));
-        }
-    }
-
-    @Override
-    public void removeRawData(IToolStackView tool, Modifier modifier, RestrictedCompoundTag tag) {
     }
 }
